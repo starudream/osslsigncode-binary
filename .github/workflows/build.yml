@@ -1,0 +1,68 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          # windows
+          - os: windows-2025
+            name: windows-x64
+            vcpkg_triplet: x64-windows-static
+          # linux
+          - os: ubuntu-24.04
+            name: linux-x64
+            vcpkg_triplet: x64-linux
+          # - os: ubuntu-24.04
+          #   name: linux-arm64
+          #   vcpkg_triplet: arm64-linux
+          # macos
+          # - os: macos-15-large
+          #   name: macos-x64
+          #   vcpkg_triplet: x64-osx
+          # - os: macos-15
+          #   name: macos-arm64
+          #   vcpkg_triplet: arm64-osx
+
+    runs-on: ${{ matrix.os }}
+
+    env:
+      VCPKG_DEFAULT_TRIPLET: ${{ matrix.vcpkg_triplet }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - uses: lukka/get-cmake@v4.1.0
+
+      - uses: lukka/run-vcpkg@v11.5
+        with:
+          vcpkgJsonGlob: vcpkg.json
+
+      - name: prepare
+        shell: bash
+        run: |
+          cp vcpkg.json osslsigncode/vcpkg.json
+          sed -i 's|include(CMakeTest)|#include(CMakeTest)|g' osslsigncode/CMakeLists.txt
+
+      - name: cmake configure
+        run: cmake -G Ninja -S osslsigncode -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXE_LINKER_FLAGS="-static" -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/files
+
+      - name: cmake build
+        run: cmake --build build --config Release
+
+      - name: cmake install
+        run: cmake --install build
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.name }}
+          path: ${{ github.workspace }}/files

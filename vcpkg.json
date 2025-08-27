@@ -1,0 +1,9 @@
+{
+  "name": "osslsigncode",
+  "version-string": "2.10",
+  "dependencies": [
+    "openssl",
+    "zlib"
+  ],
+  "builtin-baseline": "a45a94f1217be182dbca7a0fde564854c79f1eb9"
+}
