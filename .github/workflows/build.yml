@@ -43,33 +43,25 @@ jobs:
         with:
           fetch-depth: 0
           submodules: recursive
-
-      - uses: lukka/get-cmake@v4.1.0
-
-      - uses: lukka/run-vcpkg@v11.5
-        with:
-          vcpkgJsonGlob: vcpkg.json
-
-      - name: prepare
-        shell: bash
-        run: |
-          cp vcpkg.json osslsigncode/vcpkg.json
-          sed -i 's|include(CMakeTest)|#include(CMakeTest)|g' osslsigncode/CMakeLists.txt
-
-      - name: cmake configure
-        run: cmake -G Ninja -S osslsigncode -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXE_LINKER_FLAGS=-static -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/files
-
-      - name: cmake build
-        run: cmake --build build --config Release
-
-      - name: cmake install
-        run: cmake --install build
-
       - id: timestamp
         name: timestamp
         shell: bash
         run: echo "TIMESTAMP=$(date +'%Y%m%d%H%M%S')" >> $GITHUB_OUTPUT
-
+      - uses: lukka/get-cmake@v4.1.0
+      - uses: lukka/run-vcpkg@v11.5
+        with:
+          vcpkgJsonGlob: vcpkg.json
+      - name: prepare
+        shell: bash
+        run: |
+          cp vcpkg.json osslsigncode/vcpkg.json
+          sed -i "s|include(CMakeTest)|#include(CMakeTest)|g" osslsigncode/CMakeLists.txt
+      - name: cmake configure
+        run: cmake -G Ninja -S osslsigncode -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXE_LINKER_FLAGS=-static -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/files
+      - name: cmake build
+        run: cmake --build build --config Release
+      - name: cmake install
+        run: cmake --install build
       - uses: actions/upload-artifact@v4
         with:
           name: osslsigncode-${{ steps.timestamp.outputs.TIMESTAMP }}-${{ matrix.name }}
@@ -80,6 +72,12 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+      - name: summary
+        run: bash bump.sh
       - uses: dawidd6/action-download-artifact@v11
         with:
           run_id: ${{ github.run_id }}
@@ -90,5 +88,6 @@ jobs:
         with:
           name: nightly
           tag_name: nightly
-          prerelease: true
+          make_latest: true
+          body_path: ${{ github.workspace }}/version.md
           files: ${{ github.workspace }}/files/**/*
