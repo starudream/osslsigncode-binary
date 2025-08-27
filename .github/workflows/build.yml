@@ -1,5 +1,8 @@
 name: Build
 
+permissions:
+  contents: write
+
 on:
   push:
     branches:
@@ -54,7 +57,7 @@ jobs:
           sed -i 's|include(CMakeTest)|#include(CMakeTest)|g' osslsigncode/CMakeLists.txt
 
       - name: cmake configure
-        run: cmake -G Ninja -S osslsigncode -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXE_LINKER_FLAGS="-static" -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/files
+        run: cmake -G Ninja -S osslsigncode -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXE_LINKER_FLAGS=-static -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/files
 
       - name: cmake build
         run: cmake --build build --config Release
@@ -62,7 +65,26 @@ jobs:
       - name: cmake install
         run: cmake --install build
 
+      - id: timestamp
+        name: timestamp
+        run: echo "TIMESTAMP=$(date +'%Y%m%d%H%M%S')" >> $GITHUB_OUTPUT
+
       - uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.name }}
+          name: osslsigncode-${{ steps.timestamp.outputs.TIMESTAMP }}-${{ matrix.name }}
+          path: ${{ github.workspace }}/files/bin
+
+
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v5
+        with:
           path: ${{ github.workspace }}/files
+          merge-multiple: true
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          name: nightly
+          prerelease: true
+          files: ${{ github.workspace }}/files/**/*
