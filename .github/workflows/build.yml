@@ -16,15 +16,15 @@ jobs:
         include:
           # windows
           - os: windows-2025
-            name: windows-x64
+            name: windows-amd64
             vcpkg_triplet: x64-windows-static
           # linux
           - os: ubuntu-24.04
-            name: linux-x64
+            name: linux-amd64
             vcpkg_triplet: x64-linux
-          # - os: ubuntu-24.04
-          #   name: linux-arm64
-          #   vcpkg_triplet: arm64-linux
+          - os: ubuntu-24.04
+            name: linux-arm64
+            vcpkg_triplet: arm64-linux
           # macos
           # - os: macos-15-large
           #   name: macos-x64
@@ -47,7 +47,7 @@ jobs:
         name: timestamp
         shell: bash
         run: echo "TIMESTAMP=$(date +'%Y%m%d%H%M%S')" >> $GITHUB_OUTPUT
-      - uses: lukka/get-cmake@v4.1.0
+      - uses: lukka/get-cmake@v4.1.1
       - uses: lukka/run-vcpkg@v11.5
         with:
           vcpkgJsonGlob: vcpkg.json
