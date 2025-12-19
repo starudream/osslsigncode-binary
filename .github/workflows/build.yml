@@ -22,16 +22,16 @@ jobs:
           - os: ubuntu-24.04
             name: linux-amd64
             vcpkg_triplet: x64-linux
-          - os: ubuntu-24.04
+          - os: ubuntu-24.04-arm
             name: linux-arm64
             vcpkg_triplet: arm64-linux
           # macos
-          # - os: macos-15-large
-          #   name: macos-x64
-          #   vcpkg_triplet: x64-osx
-          # - os: macos-15
-          #   name: macos-arm64
-          #   vcpkg_triplet: arm64-osx
+          - os: macos-15-intel
+            name: macos-x64
+            vcpkg_triplet: x64-osx
+          - os: macos-15
+            name: macos-arm64
+            vcpkg_triplet: arm64-osx
 
     runs-on: ${{ matrix.os }}
 
