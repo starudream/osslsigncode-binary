@@ -42,7 +42,7 @@ jobs:
       VCPKG_DEFAULT_TRIPLET: ${{ matrix.vcpkg_triplet }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
           submodules: recursive
@@ -50,8 +50,8 @@ jobs:
         name: timestamp
         shell: bash
         run: echo "TIMESTAMP=$(date +'%Y%m%d%H%M%S')" >> $GITHUB_OUTPUT
-      - uses: lukka/get-cmake@v4.1.1
-      - uses: lukka/run-vcpkg@v11.5
+      - uses: lukka/get-cmake@v4.3.2
+      - uses: lukka/run-vcpkg@v11.6
         with:
           vcpkgJsonGlob: vcpkg.json
       - name: prepare
@@ -65,7 +65,7 @@ jobs:
         run: cmake --build build --config Release
       - name: cmake install
         run: cmake --install build
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: osslsigncode-${{ steps.timestamp.outputs.TIMESTAMP }}-${{ matrix.name }}
           path: ${{ github.workspace }}/files/bin
@@ -75,19 +75,19 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
           submodules: recursive
       - name: summary
         run: bash bump.sh
-      - uses: dawidd6/action-download-artifact@v11
+      - uses: dawidd6/action-download-artifact@v21
         with:
           run_id: ${{ github.run_id }}
           path: ${{ github.workspace }}/files
           skip_unpack: true
           merge_multiple: true
-      - uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v3
         with:
           name: nightly
           tag_name: nightly
